@@ -5,12 +5,21 @@ import os
 import threading
 import time
 
-# توکن رباتت
+# اطلاعات تلگرام (از my.telegram.org)
+API_ID = 32585381
+API_HASH = "9309e4bd6128d74e7189caa91d899153"
+
+# توکن ربات از BotFather
 BOT_TOKEN = "8587432432:AAGuMfvFVzjMrlr3Bs1I39nQRiwKLpaYXOY"
 
-app = Client("video_bot", bot_token=BOT_TOKEN)
+app = Client(
+    "video_bot",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN
+)
 
-# حذف فایل بعد از زمان مشخص
+# حذف فایل بعد از 24 ساعت
 def delete_after(filename, delay_seconds=86400):
     def _delete():
         time.sleep(delay_seconds)
@@ -31,11 +40,11 @@ def choose_quality(client, message):
     buttons = [
         [InlineKeyboardButton("144p", "144"), InlineKeyboardButton("360p", "360")],
         [InlineKeyboardButton("720p", "720"), InlineKeyboardButton("1080p", "1080")],
-        [InlineKeyboardButton("Audio Only", "audio")]
+        [InlineKeyboardButton("🎧 Audio Only", "audio")]
     ]
 
     message.reply(
-        "لطفاً کیفیت ویدیو را انتخاب کن:",
+        "کیفیت مورد نظر رو انتخاب کن:",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
 
@@ -47,21 +56,24 @@ def download_video(client, callback_query):
     url = user_links.get(user_id)
 
     if not url:
-        callback_query.answer("هیچ لینکی پیدا نشد!", show_alert=True)
+        callback_query.answer("لینکی پیدا نشد!", show_alert=True)
         return
 
-    msg = callback_query.message.edit_text(f"در حال دانلود {quality}... ⏳")
+    msg = callback_query.message.edit_text(f"در حال دانلود {quality}... 0% ⏳")
 
-    # Hook برای نمایش درصد
+    # Progress hook
     def progress_hook(d):
         if d['status'] == 'downloading':
             total = d.get('total_bytes') or d.get('total_bytes_estimate')
             downloaded = d.get('downloaded_bytes', 0)
             if total:
                 percent = downloaded / total * 100
-                msg.edit(f"دانلود {quality}... {percent:.1f}% ⏳")
+                try:
+                    msg.edit(f"در حال دانلود {quality}... {percent:.1f}% ⏳")
+                except:
+                    pass
 
-    # گزینه‌های yt-dlp
+    # تنظیمات yt-dlp
     if quality == "audio":
         ydl_opts = {
             "format": "bestaudio",
@@ -87,7 +99,8 @@ def download_video(client, callback_query):
         user_links.pop(user_id, None)
 
     except Exception as e:
-        msg.edit(f"خطا در دانلود: {e}")
+        msg.edit(f"خطا در دانلود:\n{e}")
         print(e)
 
+print("BOT STARTED")
 app.run()
