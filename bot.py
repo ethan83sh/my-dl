@@ -6,12 +6,10 @@ import threading
 import time
 import subprocess
 
-# اطلاعات تلگرام (از my.telegram.org)
-API_ID = 32585381
-API_HASH = "9309e4bd6128d74e7189caa91d899153"
+API_ID = int(os.getenv("API_ID"))
+API_HASH = os.getenv("API_HASH")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# توکن ربات از BotFather
-BOT_TOKEN = "8587432432:AAGuMfvFVzjMrlr3Bs1I39nQRiwKLpaYXOY"
 
 app = Client(
     "video_bot",
